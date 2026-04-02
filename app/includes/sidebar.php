@@ -44,8 +44,7 @@ $myTeamActive = in_array($currentStem, [
         left: 0;
         font-family: 'Inter', sans-serif;
         box-sizing: border-box;
-        overflow-y: auto;
-        overflow-x: hidden;
+        overflow: visible;
         z-index: 100;
         scrollbar-width: thin;
         scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
@@ -85,6 +84,9 @@ $myTeamActive = in_array($currentStem, [
     .sidebar-scroll {
         flex: 1;
         padding: 12px 0 14px;
+        overflow-y: auto;
+        overflow-x: visible;
+        max-height: calc(100vh - 132px);
     }
 
     .sidebar-link,
@@ -177,19 +179,14 @@ $myTeamActive = in_array($currentStem, [
     .sidebar-expandable {
         display: flex;
         flex-direction: column;
+        position: relative;
     }
 
     .sidebar-expandable-panel {
         display: none;
         flex-direction: column;
         gap: 2px;
-        margin: 2px 0 4px;
-    }
-
-    .sidebar-expandable:hover .sidebar-expandable-panel,
-    .sidebar-expandable:focus-within .sidebar-expandable-panel,
-    .sidebar-expandable.active .sidebar-expandable-panel {
-        display: flex;
+        pointer-events: none;
     }
 
     .sidebar-subitem {
@@ -204,6 +201,7 @@ $myTeamActive = in_array($currentStem, [
         margin-left: auto;
         font-size: 10px;
         opacity: 0.55;
+        transition: transform 0.2s ease, opacity 0.2s ease;
     }
 
     .sidebar-subitem::before {
@@ -224,9 +222,82 @@ $myTeamActive = in_array($currentStem, [
         background: rgba(255, 255, 255, 0.24);
     }
 
+    .sidebar-expandable-panel .sidebar-subitem {
+        padding-left: 26px;
+        padding-right: 18px;
+    }
+
+    .sidebar-expandable-panel .sidebar-subitem::before {
+        left: 12px;
+    }
+
+    .sidebar-expandable:hover > .sidebar-subitem--trigger .chevron,
+    .sidebar-expandable:focus-within > .sidebar-subitem--trigger .chevron,
+    .sidebar-expandable.active > .sidebar-subitem--trigger .chevron,
+    .sidebar-expandable.is-open > .sidebar-subitem--trigger .chevron {
+        transform: rotate(180deg);
+        opacity: 0.9;
+    }
+
     .sidebar-subitem.active::before,
     .sidebar-link.active::before {
         background: #9fd2ff;
+    }
+
+    .sidebar-flyout-layer {
+        position: fixed;
+        inset: 0;
+        z-index: 220;
+        pointer-events: none;
+    }
+
+    .sidebar-flyout-panel {
+        position: fixed;
+        left: 260px;
+        top: 0;
+        min-width: 200px;
+        max-width: 240px;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        background: linear-gradient(180deg, #0d2038 0%, #0b1c31 100%);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-left: 0;
+        border-radius: 0 14px 14px 0;
+        box-shadow: 14px 0 36px rgba(0, 0, 0, 0.34), 0 12px 28px rgba(0, 0, 0, 0.16);
+        padding: 10px 0;
+        opacity: 0;
+        transform: translateX(-12px) scale(0.98);
+        transition: opacity 0.2s ease, transform 0.2s ease;
+        pointer-events: none;
+    }
+
+    .sidebar-flyout-panel.is-open {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+        pointer-events: auto;
+    }
+
+    .sidebar-flyout-panel .flyout-content {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+    }
+
+    .sidebar-flyout-panel .sidebar-subitem {
+        padding-left: 26px;
+        padding-right: 18px;
+        width: 100%;
+        white-space: nowrap;
+    }
+
+    .sidebar-flyout-panel .sidebar-subitem::before {
+        left: 12px;
+    }
+
+    .sidebar-flyout-panel .sidebar-subitem--nested {
+        padding-left: 26px;
     }
 
     .sidebar-footer {
@@ -271,7 +342,7 @@ $myTeamActive = in_array($currentStem, [
                 <div class="sidebar-expandable <?= $isCurrent('timesheet') ? 'active' : '' ?>" data-sidebar-group="me-timesheet">
                     <a href="/HRMS/public/timesheet.php" class="sidebar-subitem sidebar-subitem--trigger <?= $isCurrent('timesheet') ? 'active' : '' ?>" data-sidebar-path="timesheet" data-sidebar-section="me">
                         Timesheet
-                        <i class="fa-solid fa-chevron-down chevron"></i>
+                        <i class="fa-solid fa-chevron-left chevron"></i>
                     </a>
                     <div class="sidebar-expandable-panel">
                         <a href="/HRMS/public/timesheet.php" class="sidebar-subitem sidebar-subitem--nested <?= $isCurrent('timesheet') ? 'active' : '' ?>" data-sidebar-path="timesheet" data-sidebar-section="me">
@@ -305,7 +376,7 @@ $myTeamActive = in_array($currentStem, [
                 <div class="sidebar-expandable <?= in_array($currentStem, ['user-performance', 'user-performance-feedback', 'user-performance-pip', 'user-performance-reviews', 'user-performance-skills', 'user-performance-competencies', 'user-performance-meetings'], true) ? 'active' : '' ?>" data-sidebar-group="me-performance">
                     <a href="/HRMS/public/user-performance.php" class="sidebar-subitem sidebar-subitem--trigger <?= in_array($currentStem, ['user-performance', 'user-performance-feedback', 'user-performance-pip', 'user-performance-reviews', 'user-performance-skills', 'user-performance-competencies', 'user-performance-meetings'], true) ? 'active' : '' ?>" data-sidebar-path="user-performance" data-sidebar-section="me">
                         Performance
-                        <i class="fa-solid fa-chevron-down chevron"></i>
+                        <i class="fa-solid fa-chevron-left chevron"></i>
                     </a>
                     <div class="sidebar-expandable-panel">
                         <a href="/HRMS/public/user-performance.php" class="sidebar-subitem sidebar-subitem--nested <?= in_array($currentStem, ['user-performance', 'user-performance-feedback', 'user-performance-pip', 'user-performance-reviews', 'user-performance-skills', 'user-performance-competencies', 'user-performance-meetings'], true) ? 'active' : '' ?>" data-sidebar-path="user-performance" data-sidebar-section="me">
@@ -355,7 +426,7 @@ $myTeamActive = in_array($currentStem, [
                 <div class="sidebar-expandable <?= $myTeamActive ? 'active' : '' ?>" data-sidebar-group="myteam-leave">
                     <a href="/HRMS/public/myteam_leave_overview.php" class="sidebar-subitem sidebar-subitem--trigger <?= $isCurrent('myteam_leave_overview') ? 'active' : '' ?>" data-sidebar-path="myteam_leave_overview" data-sidebar-section="myteam">
                         Leave
-                        <i class="fa-solid fa-chevron-down chevron"></i>
+                        <i class="fa-solid fa-chevron-left chevron"></i>
                     </a>
                     <div class="sidebar-expandable-panel">
                         <a href="/HRMS/public/myteam_leave_overview.php" class="sidebar-subitem sidebar-subitem--nested <?= $isCurrent('myteam_leave_overview') ? 'active' : '' ?>" data-sidebar-path="myteam_leave_overview" data-sidebar-section="myteam">
