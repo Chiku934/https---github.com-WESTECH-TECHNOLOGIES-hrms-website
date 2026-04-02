@@ -13,7 +13,7 @@
 
     .leave-main {
         flex: 1;
-        margin-left: 150px;
+        margin-left: 260px;
         background: #f4f6fb;
         min-width: 0;
     }

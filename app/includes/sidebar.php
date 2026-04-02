@@ -1,282 +1,421 @@
+<?php
+
+declare(strict_types=1);
+
+$currentPath = basename((string) parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH));
+$currentStem = strtolower((string) preg_replace('/\.(php|html)$/i', '', $currentPath));
+
+$isCurrent = static function (string $stem) use ($currentStem): bool {
+    return $currentStem === strtolower($stem);
+};
+
+$meActive = in_array($currentStem, [
+    'user-attendance',
+    'timesheet',
+    'user-leave',
+    'user-performance',
+    'user-performance-meetings',
+    'user-performance-feedback',
+    'user-performance-pip',
+    'user-performance-reviews',
+    'user-performance-skills',
+    'user-performance-competencies',
+    'user-expenses',
+    'user-support',
+], true);
+
+$myTeamActive = in_array($currentStem, [
+    'myteam_leave_overview',
+    'myteam_leave_approvals',
+    'myteam_leave_direct',
+    'myteam_leave_indirect',
+    'myteam_leave_digital_services',
+], true);
+?>
 <style>
-    /* --- Premium Flyout Submenu Styles --- */
-    .nav-item-wrapper {
-        position: relative;
+    .sidebar {
+        width: 260px;
+        background: #0b1c31;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        position: fixed;
+        top: 0;
+        left: 0;
+        font-family: 'Inter', sans-serif;
+        box-sizing: border-box;
+        overflow-y: auto;
+        overflow-x: hidden;
+        z-index: 100;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+    }
+
+    .sidebar::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.18);
+        border-radius: 999px;
+    }
+
+    .sidebar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .sidebar-brand {
+        background: #6366f1;
+        padding: 20px 16px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .sidebar-brand span {
+        color: #fff;
+        font-weight: 800;
+        font-size: 18px;
+        font-style: italic;
+        letter-spacing: -1.5px;
+    }
+
+    .sidebar-scroll {
+        flex: 1;
+        padding: 12px 0 14px;
+    }
+
+    .sidebar-link,
+    .sidebar-subitem {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: #ffffff !important;
+        text-decoration: none !important;
+        transition: background-color 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
+        box-sizing: border-box;
         width: 100%;
     }
 
-    /* Flyout Container */
-    .submenu,
-    .nested-submenu {
-        position: absolute;
-        left: 100%;
-        top: 0;
-        background-color: #0b1c31 !important;
-        min-width: 250px;
-        display: none;
-        flex-direction: column;
-        box-shadow: 15px 0 45px rgba(0, 0, 0, 0.4), 0 5px 25px rgba(0, 0, 0, 0.1);
-        z-index: 10000;
-        border-left: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 0 12px 12px 0;
-        list-style: none;
-        padding: 12px 0;
-        margin: 0;
-        animation: premiumFlyoutIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    .sidebar-link {
+        padding: 12px 16px;
+        opacity: 0.72;
+        font-size: 13px;
+        font-weight: 600;
     }
 
-    @keyframes premiumFlyoutIn {
-        from {
-            opacity: 0;
-            transform: translateX(12px) scale(0.98);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateX(0) scale(1);
-        }
+    .sidebar-link:hover,
+    .sidebar-subitem:hover {
+        background: #162845;
+        opacity: 1;
     }
 
-    /* Flyout Header - Makes it feel like Keka */
-    .submenu-header {
-        padding: 10px 20px 15px;
-        font-size: 11px;
-        font-weight: 700;
-        color: #94a3b8;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        border-bottom: 1px solid #f1f5f9;
-        margin-bottom: 8px;
+    .sidebar-link.active,
+    .sidebar-section.active > .sidebar-link,
+    .sidebar-subitem.active {
+        background: #1e3a5f;
+        opacity: 1;
     }
 
-    .submenu-item {
-        padding: 12px 25px;
+    .sidebar-link i {
+        width: 18px;
+        text-align: center;
+        font-size: 16px;
+        flex: 0 0 auto;
         color: #ffffff !important;
-        text-decoration: none !important;
-        font-size: 13.5px;
-        font-weight: 500;
-        display: block;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        background-color: transparent;
+    }
+
+    .sidebar-link .sidebar-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .sidebar-link--home {
         position: relative;
     }
 
-    .submenu-item:hover {
-        background-color: #1e3a5f !important;
-        color: #ffffff !important;
-        padding-left: 30px;
+    .sidebar-link--home .sidebar-count {
+        position: absolute;
+        top: 10px;
+        right: 12px;
+        background: #ef4444;
+        color: #fff;
+        font-size: 8px;
+        font-weight: 700;
+        min-width: 16px;
+        height: 16px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1.5px solid #0b1c31;
     }
 
-    .submenu-item.active {
-        background-color: rgba(99, 102, 241, 0.2) !important;
-        color: #ffffff !important;
-        font-weight: 600;
-        border-left: 3px solid #6366f1;
-        padding-left: 28px;
-        transform: translateX(3px);
+    .sidebar-section {
+        padding: 4px 0 8px;
     }
 
-    .submenu-item i.chevron {
-        float: right;
-        margin-top: 4px;
+    .sidebar-section-title {
+        padding: 12px 16px 6px;
         font-size: 10px;
-        opacity: 0.6;
-        color: #ffffff;
+        font-weight: 700;
+        color: #7d8ca6;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
     }
 
-    .submenu-item.active i:not(.chevron) {
-        background-color: #6366f1;
-        color: white;
+    .sidebar-submenu {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding-bottom: 2px;
     }
 
-    .submenu-item i.chevron {
+    .sidebar-expandable {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .sidebar-expandable-panel {
+        display: none;
+        flex-direction: column;
+        gap: 2px;
+        margin: 2px 0 4px;
+    }
+
+    .sidebar-expandable:hover .sidebar-expandable-panel,
+    .sidebar-expandable:focus-within .sidebar-expandable-panel,
+    .sidebar-expandable.active .sidebar-expandable-panel {
+        display: flex;
+    }
+
+    .sidebar-subitem {
+        padding: 9px 16px 9px 44px;
+        font-size: 12px;
+        font-weight: 500;
+        opacity: 0.82;
+        position: relative;
+    }
+
+    .sidebar-subitem--trigger .chevron {
         margin-left: auto;
         font-size: 10px;
-        opacity: 0.4;
+        opacity: 0.55;
     }
 
-    .submenu-item-wrapper:hover > .nested-submenu {
-        display: flex !important;
-        left: 100%;
-        top: -12px;
-        border-radius: 16px;
+    .sidebar-subitem::before {
+        content: '';
+        position: absolute;
+        left: 28px;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.22);
     }
 
-    .nested-submenu .submenu-header {
-        background: #0b1c31;
-        color: #94a3b8 !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    .sidebar-expandable .sidebar-subitem::before {
+        background: rgba(255, 255, 255, 0.18);
     }
 
-    .menu-badge {
-        background: #ef4444;
-        color: white;
-        font-size: 9px;
-        padding: 2px 6px;
-        border-radius: 10px;
-        font-weight: 700;
-        margin-left: 6px;
+    .sidebar-expandable .sidebar-subitem--trigger::before {
+        background: rgba(255, 255, 255, 0.24);
+    }
+
+    .sidebar-subitem.active::before,
+    .sidebar-link.active::before {
+        background: #9fd2ff;
+    }
+
+    .sidebar-footer {
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        padding: 16px 0 18px;
+    }
+
+    .sidebar-footer .sidebar-link {
+        opacity: 0.6;
     }
 
     .sidebar,
     .sidebar a,
     .sidebar span,
-    .submenu,
-    .submenu-item,
-    .submenu-item span,
-    .nested-submenu,
-    .nested-submenu span {
-        color: #ffffff !important;
-    }
-
     .sidebar i {
-        color: #ffffff !important;
-    }
-
-    .sidebar a:hover,
-    .submenu-item:hover {
-        color: #ffffff !important;
-    }
-
-    .submenu-item.active {
-        color: #ffffff !important;
-    }
-
-    .menu-badge {
         color: #ffffff !important;
     }
 </style>
 
-<div style="width: 150px; background-color: #0b1c31; display: flex; flex-direction: column; height: 100vh; position: fixed; top: 0; left: 0; font-family: 'Inter', sans-serif; box-sizing: border-box; overflow: visible; z-index: 100;"
-    class="sidebar">
-
-    <div
-        style="background-color: #6366f1; padding: 22px 0; display: flex; justify-content: center; align-items: center; width: 100%; position: relative;">
-        <span
-            style="color: white; font-weight: 800; font-size: 18px; font-style: italic; letter-spacing: -1.5px;">TEAMAXIS</span>
+<div class="sidebar">
+    <div class="sidebar-brand">
+        <span>TEAMAXIS</span>
     </div>
 
-    <div style="flex: 1; padding: 15px 0;">
-
-        <a href="dashboard.php"
-            style="display: flex; flex-direction: column; align-items: center; padding: 14px 0; text-decoration: none; color: #ffffff; opacity: 0.4; transition: 0.2s; width: 100%;">
-            <i class="fa-solid fa-house" style="font-size: 18px; margin-bottom: 6px;"></i>
-            <span style="font-size: 10px; font-weight: 400; text-align: center; color: white !important;">Home</span>
+    <div class="sidebar-scroll">
+        <a href="/HRMS/public/dashboard.php" class="sidebar-link sidebar-link--home <?= $isCurrent('dashboard') ? 'active' : '' ?>">
+            <i class="fa-solid fa-house"></i>
+            <span class="sidebar-label">Home</span>
         </a>
 
-        <div class="nav-item-wrapper">
-            <a href="user-attendance.php" id="sidebar-me-link"
-                style="display: flex; flex-direction: column; align-items: center; padding: 14px 0; text-decoration: none; color: #ffffff; transition: 0.2s; width: 100%; opacity: 0.8;">
-                <i class="fa-solid fa-user" style="font-size: 18px; margin-bottom: 6px;"></i>
-                <span style="font-size: 10px; font-weight: 400; text-align: center; color:white !important;">Me</span>
+        <section class="sidebar-section <?= $meActive ? 'active' : '' ?>">
+            <a href="/HRMS/public/user-attendance.php" id="sidebar-me-link" class="sidebar-link sidebar-section-link <?= $meActive ? 'active' : '' ?>">
+                <i class="fa-solid fa-user"></i>
+                <span class="sidebar-label">Me</span>
             </a>
 
-            <div class="submenu">
-                <a href="user-attendance.php" class="submenu-item">
-                    <span
-                        style="font-size: 10px; font-weight: 400; text-align: center; color: white !important;">Attendance</span>
-                </a>
-                <a href="timesheet.php" class="submenu-item">
-                    <span style="color: white;">Timesheet</span>
-                </a>
-                <a href="user-leave.php" class="submenu-item">
-                    <span style="color: white;">Leave</span>
-                </a>
-                <a href="user-performance.php" class="submenu-item">
-                    <span style="color: white;">Performance</span>
-                </a>
-                <a href="user-expenses.php" class="submenu-item">
-                    <span style="color: white;">Expenses & Travel</span>
-                </a>
-                <a href="user-support.php" class="submenu-item">
-                    <span style="color: white;">Helpdesk</span>
-                </a>
-            </div>
-        </div>
-
-        <div class="nav-item-wrapper">
-            <a href="myteam_leave_overview.php" id="sidebar-my-team-link"
-                style="display: flex; flex-direction: column; align-items: center; padding: 14px 0; text-decoration: none; color: #ffffff; transition: 0.2s; width: 100%; opacity: 0.8;">
-                <i class="fa-solid fa-people-group" style="font-size: 18px; margin-bottom: 6px;"></i>
-                <span style="font-size: 10px; font-weight: 400; text-align: center; color:white !important;">My Team</span>
-            </a>
-
-            <div class="submenu">
-                <a href="#" class="submenu-item">
-                    <span style="font-size: 10px; font-weight: 400; text-align: center; color: white !important;">Summary</span>
+            <div class="sidebar-submenu">
+                <a href="/HRMS/public/user-attendance.php" class="sidebar-subitem <?= $isCurrent('user-attendance') ? 'active' : '' ?>" data-sidebar-path="user-attendance" data-sidebar-section="me">
+                    Attendance
                 </a>
 
-                <div class="submenu-item-wrapper">
-                    <a href="myteam_leave_overview.php" class="submenu-item">
-                        <span style="color: white;">Leave</span>
-                        <i class="fa-solid fa-chevron-right chevron"></i>
+                <div class="sidebar-expandable <?= $isCurrent('timesheet') ? 'active' : '' ?>" data-sidebar-group="me-timesheet">
+                    <a href="/HRMS/public/timesheet.php" class="sidebar-subitem sidebar-subitem--trigger <?= $isCurrent('timesheet') ? 'active' : '' ?>" data-sidebar-path="timesheet" data-sidebar-section="me">
+                        Timesheet
+                        <i class="fa-solid fa-chevron-down chevron"></i>
                     </a>
-                    <div class="nested-submenu">
-                        <div class="submenu-header">Leave</div>
-                        <a href="myteam_leave_overview.php" class="submenu-item" id="sidebar-myteam-leave-overview-link">
-                            <span style="color: white;">Leave Overview</span>
+                    <div class="sidebar-expandable-panel">
+                        <a href="/HRMS/public/timesheet.php" class="sidebar-subitem sidebar-subitem--nested <?= $isCurrent('timesheet') ? 'active' : '' ?>" data-sidebar-path="timesheet" data-sidebar-section="me">
+                            All Timesheets
                         </a>
-                        <a href="myteam_leave_approvals.php" class="submenu-item" id="sidebar-myteam-leave-approvals-link">
-                            <span style="color: white;">Leave Approvals</span>
+                        <a href="/HRMS/public/timesheet.php#past-due" class="sidebar-subitem sidebar-subitem--nested" data-sidebar-path="timesheet" data-sidebar-hash="past-due" data-sidebar-section="me">
+                            Past Due
                         </a>
-                        <a href="#" class="submenu-item">
-                            <span style="color: white;">Penalized Leave</span>
+                        <a href="/HRMS/public/timesheet.php#rejected" class="sidebar-subitem sidebar-subitem--nested" data-sidebar-path="timesheet" data-sidebar-hash="rejected" data-sidebar-section="me">
+                            Rejected Timesheets
                         </a>
-                        <a href="#" class="submenu-item">
-                            <span style="color: white;">Past Leave Requests</span>
+                        <a href="/HRMS/public/timesheet.php#project-time" class="sidebar-subitem sidebar-subitem--nested" data-sidebar-path="timesheet" data-sidebar-hash="project-time" data-sidebar-section="me">
+                            Project Time
                         </a>
-                        <a href="#" class="submenu-item">
-                            <span style="color: white;">Encashment Requests</span>
+                        <a href="/HRMS/public/timesheet.php#summary" class="sidebar-subitem sidebar-subitem--nested" data-sidebar-path="timesheet" data-sidebar-hash="summary" data-sidebar-section="me">
+                            Time Summary
                         </a>
-                        <a href="#" class="submenu-item">
-                            <span style="color: white;">Reports</span>
+                        <a href="/HRMS/public/timesheet.php#tasks" class="sidebar-subitem sidebar-subitem--nested" data-sidebar-path="timesheet" data-sidebar-hash="tasks" data-sidebar-section="me">
+                            My Tasks
+                        </a>
+                        <a href="/HRMS/public/timesheet.php#projects" class="sidebar-subitem sidebar-subitem--nested" data-sidebar-path="timesheet" data-sidebar-hash="projects" data-sidebar-section="me">
+                            Projects Allocated
                         </a>
                     </div>
                 </div>
 
-                <a href="#" class="submenu-item">
-                    <span style="color: white;">Attendance</span>
+                <a href="/HRMS/public/user-leave.php" class="sidebar-subitem <?= $isCurrent('user-leave') ? 'active' : '' ?>" data-sidebar-path="user-leave" data-sidebar-section="me">
+                    Leave
                 </a>
-                <a href="#" class="submenu-item">
-                    <span style="color: white;">Expenses & Travel</span>
+
+                <div class="sidebar-expandable <?= in_array($currentStem, ['user-performance', 'user-performance-feedback', 'user-performance-pip', 'user-performance-reviews', 'user-performance-skills', 'user-performance-competencies', 'user-performance-meetings'], true) ? 'active' : '' ?>" data-sidebar-group="me-performance">
+                    <a href="/HRMS/public/user-performance.php" class="sidebar-subitem sidebar-subitem--trigger <?= in_array($currentStem, ['user-performance', 'user-performance-feedback', 'user-performance-pip', 'user-performance-reviews', 'user-performance-skills', 'user-performance-competencies', 'user-performance-meetings'], true) ? 'active' : '' ?>" data-sidebar-path="user-performance" data-sidebar-section="me">
+                        Performance
+                        <i class="fa-solid fa-chevron-down chevron"></i>
+                    </a>
+                    <div class="sidebar-expandable-panel">
+                        <a href="/HRMS/public/user-performance.php" class="sidebar-subitem sidebar-subitem--nested <?= in_array($currentStem, ['user-performance', 'user-performance-feedback', 'user-performance-pip', 'user-performance-reviews', 'user-performance-skills', 'user-performance-competencies', 'user-performance-meetings'], true) ? 'active' : '' ?>" data-sidebar-path="user-performance" data-sidebar-section="me">
+                            KRAs
+                        </a>
+                        <a href="/HRMS/public/user-performance-meetings.php" class="sidebar-subitem sidebar-subitem--nested <?= $isCurrent('user-performance-meetings') ? 'active' : '' ?>" data-sidebar-path="user-performance-meetings" data-sidebar-section="me">
+                            1:1 Meetings
+                        </a>
+                        <a href="/HRMS/public/user-performance-feedback.php" class="sidebar-subitem sidebar-subitem--nested <?= $isCurrent('user-performance-feedback') ? 'active' : '' ?>" data-sidebar-path="user-performance-feedback" data-sidebar-section="me">
+                            Feedback
+                        </a>
+                        <a href="/HRMS/public/user-performance-pip.php" class="sidebar-subitem sidebar-subitem--nested <?= $isCurrent('user-performance-pip') ? 'active' : '' ?>" data-sidebar-path="user-performance-pip" data-sidebar-section="me">
+                            PIP
+                        </a>
+                        <a href="/HRMS/public/user-performance-reviews.php" class="sidebar-subitem sidebar-subitem--nested <?= $isCurrent('user-performance-reviews') ? 'active' : '' ?>" data-sidebar-path="user-performance-reviews" data-sidebar-section="me">
+                            Reviews
+                        </a>
+                        <a href="/HRMS/public/user-performance-skills.php" class="sidebar-subitem sidebar-subitem--nested <?= $isCurrent('user-performance-skills') ? 'active' : '' ?>" data-sidebar-path="user-performance-skills" data-sidebar-section="me">
+                            Skills
+                        </a>
+                        <a href="/HRMS/public/user-performance-competencies.php" class="sidebar-subitem sidebar-subitem--nested <?= $isCurrent('user-performance-competencies') ? 'active' : '' ?>" data-sidebar-path="user-performance-competencies" data-sidebar-section="me">
+                            Competencies & Core values
+                        </a>
+                    </div>
+                </div>
+
+                <a href="/HRMS/public/user-expenses.php" class="sidebar-subitem <?= $isCurrent('user-expenses') ? 'active' : '' ?>" data-sidebar-path="user-expenses" data-sidebar-section="me">
+                    Expenses & Travel
                 </a>
-                <a href="#" class="submenu-item">
-                    <span style="color: white;">Timesheet</span>
-                </a>
-                <a href="#" class="submenu-item">
-                    <span style="color: white;">Profile Changes</span>
-                </a>
-                <a href="#" class="submenu-item">
-                    <span style="color: white;">Performance</span>
-                </a>
-                <a href="#" class="submenu-item">
-                    <span style="color: white;">Hiring</span>
+                <a href="/HRMS/public/user-support.php" class="sidebar-subitem <?= $isCurrent('user-support') ? 'active' : '' ?>" data-sidebar-path="user-support" data-sidebar-section="me">
+                    Helpdesk
                 </a>
             </div>
-        </div>
+        </section>
 
-        <a href="requests.php"
-            style="display: flex; flex-direction: column; align-items: center; padding: 14px 0; text-decoration: none; color: #ffffff; position: relative; transition: 0.2s; width: 100%; opacity: 0.8;">
-            <i class="fa-solid fa-inbox" style="font-size: 18px; margin-bottom: 6px;"></i>
-            <span style="font-size: 10px; font-weight: 400; text-align: center;">Inbox</span>
-            <span
-                style="position: absolute; top: 12px; right: 20px; background-color: #ef4444; color: white; font-size: 8px; font-weight: 700; min-width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1.5px solid #0b1c31;">25</span>
+        <section class="sidebar-section <?= $myTeamActive ? 'active' : '' ?>">
+            <a href="/HRMS/public/myteam_leave_overview.php" id="sidebar-my-team-link" class="sidebar-link sidebar-section-link <?= $myTeamActive ? 'active' : '' ?>">
+                <i class="fa-solid fa-people-group"></i>
+                <span class="sidebar-label">My Team</span>
+            </a>
+
+            <div class="sidebar-submenu">
+                <a href="/HRMS/public/myteam_leave_overview.php" class="sidebar-subitem <?= $isCurrent('myteam_leave_overview') ? 'active' : '' ?>" id="sidebar-myteam-leave-overview-link" data-sidebar-path="myteam_leave_overview" data-sidebar-section="myteam">
+                    Summary
+                </a>
+
+                <div class="sidebar-expandable <?= $myTeamActive ? 'active' : '' ?>" data-sidebar-group="myteam-leave">
+                    <a href="/HRMS/public/myteam_leave_overview.php" class="sidebar-subitem sidebar-subitem--trigger <?= $isCurrent('myteam_leave_overview') ? 'active' : '' ?>" data-sidebar-path="myteam_leave_overview" data-sidebar-section="myteam">
+                        Leave
+                        <i class="fa-solid fa-chevron-down chevron"></i>
+                    </a>
+                    <div class="sidebar-expandable-panel">
+                        <a href="/HRMS/public/myteam_leave_overview.php" class="sidebar-subitem sidebar-subitem--nested <?= $isCurrent('myteam_leave_overview') ? 'active' : '' ?>" data-sidebar-path="myteam_leave_overview" data-sidebar-section="myteam">
+                            Leave Overview
+                        </a>
+                        <a href="/HRMS/public/myteam_leave_approvals.php" class="sidebar-subitem sidebar-subitem--nested <?= $isCurrent('myteam_leave_approvals') ? 'active' : '' ?>" id="sidebar-myteam-leave-approvals-link" data-sidebar-path="myteam_leave_approvals" data-sidebar-section="myteam">
+                            Leave Approvals
+                        </a>
+                        <a href="#" class="sidebar-subitem sidebar-subitem--nested" data-sidebar-section="myteam">
+                            Penalized Leave
+                        </a>
+                        <a href="#" class="sidebar-subitem sidebar-subitem--nested" data-sidebar-section="myteam">
+                            Past Leave Requests
+                        </a>
+                        <a href="#" class="sidebar-subitem sidebar-subitem--nested" data-sidebar-section="myteam">
+                            Encashment Requests
+                        </a>
+                        <a href="#" class="sidebar-subitem sidebar-subitem--nested" data-sidebar-section="myteam">
+                            Reports
+                        </a>
+                    </div>
+                </div>
+
+                <a href="#" class="sidebar-subitem" data-sidebar-section="myteam">
+                    Attendance
+                </a>
+                <a href="#" class="sidebar-subitem" data-sidebar-section="myteam">
+                    Expenses & Travel
+                </a>
+                <a href="#" class="sidebar-subitem" data-sidebar-section="myteam">
+                    Timesheet
+                </a>
+                <a href="#" class="sidebar-subitem" data-sidebar-section="myteam">
+                    Profile Changes
+                </a>
+                <a href="#" class="sidebar-subitem" data-sidebar-section="myteam">
+                    Performance
+                </a>
+                <a href="#" class="sidebar-subitem" data-sidebar-section="myteam">
+                    Hiring
+                </a>
+            </div>
+        </section>
+
+        <a href="/HRMS/public/requests.php" class="sidebar-link sidebar-link--home <?= $isCurrent('requests') ? 'active' : '' ?>">
+            <i class="fa-solid fa-inbox"></i>
+            <span class="sidebar-label">Inbox</span>
+            <span class="sidebar-count">25</span>
         </a>
 
-        <a href="payroll.php"
-            style="display: flex; flex-direction: column; align-items: center; padding: 14px 0; text-decoration: none; color: #ffffff; transition: 0.2s; width: 100%; opacity: 0.8;">
-            <i class="fa-solid fa-wallet" style="font-size: 18px; margin-bottom: 6px;"></i>
-            <span style="font-size: 10px; font-weight: 400; text-align: center;">My Finances</span>
+        <a href="/HRMS/public/payroll.php" class="sidebar-link sidebar-link--home <?= $isCurrent('payroll') ? 'active' : '' ?>">
+            <i class="fa-solid fa-wallet"></i>
+            <span class="sidebar-label">My Finances</span>
         </a>
-
     </div>
 
-    <div style="border-top: 1px solid rgba(255, 255, 255, 0.05); padding: 20px 0;">
-        <a href="index.php"
-            style="display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #ffffff; transition: 0.2s; width: 100%; opacity: 0.6;">
-            <i class="fa-solid fa-right-from-bracket" style="font-size: 18px; margin-bottom: 4px;"></i>
-            <span style="font-size: 10px; color: #ef4444 !important;">Logout</span>
+    <div class="sidebar-footer">
+        <a href="/HRMS/public/index.php" class="sidebar-link sidebar-link--home">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            <span class="sidebar-label" style="color:#ef4444 !important;">Logout</span>
         </a>
     </div>
-
 </div>

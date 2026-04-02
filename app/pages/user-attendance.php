@@ -1,7 +1,7 @@
 ﻿<style>
         body.attendance-page{margin:0;font-family:'Inter',sans-serif;background:#eef2f7;min-height:100vh}
         .attendance-shell{display:flex;min-height:100vh}
-        .attendance-main{flex:1;margin-left:150px;background:#f4f6fb;min-width:0}
+        .attendance-main{flex:1;margin-left:260px;background:#f4f6fb;min-width:0}
         .attendance-topbar{height:48px;background:linear-gradient(90deg,#5b46b4 0%,#6a4fc2 55%,#5f45b8 100%);color:#fff;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:0 14px 0 16px;box-shadow:0 2px 12px rgba(41,28,98,.16)}
         .attendance-brand{display:flex;align-items:center;gap:10px;min-width:255px;flex:0 0 auto}
         .attendance-brand-mark{font-weight:800;font-style:italic;letter-spacing:-.7px;font-size:18px;line-height:1}
@@ -969,5 +969,4 @@
             renderAttendanceLog('30DAYS');
         });
     </script>
-
 

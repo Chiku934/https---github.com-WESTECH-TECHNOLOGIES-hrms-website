@@ -445,7 +445,7 @@ body.dashboard-page {
     border-bottom: 1px solid #e2e8f0;
     width: 100%;
     box-sizing: border-box;
-    margin-left: 150px;
+    margin-left: 260px;
     position: sticky;
     top: 0;
     z-index: 100;
@@ -497,7 +497,7 @@ body.dashboard-page {
     border-bottom: 1px solid #e2e8f0;
     width: 100%;
     box-sizing: border-box;
-    margin-left: 150px;
+    margin-left: 260px;
 }
 
 .tab-list {

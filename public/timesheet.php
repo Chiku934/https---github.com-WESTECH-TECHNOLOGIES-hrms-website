@@ -575,6 +575,24 @@ document.addEventListener('DOMContentLoaded', function () {
     const weekLayoutToggle = document.getElementById('week-layout-toggle');
     const timesheetToast = document.getElementById('timesheet-toast');
     const copyBtn = document.querySelector('.copy-btn');
+    const hashToView = {
+        all: 'all',
+        'past-due': 'past-due',
+        rejected: 'rejected',
+        'project-time': 'project',
+        summary: 'summary',
+        tasks: 'tasks',
+        projects: 'projects',
+    };
+    const viewToHash = {
+        all: 'all',
+        'past-due': 'past-due',
+        rejected: 'rejected',
+        project: 'project-time',
+        summary: 'summary',
+        tasks: 'tasks',
+        projects: 'projects',
+    };
 
     const weekRanges = [
         '30 Mar - 05 Apr 2026',
@@ -834,7 +852,12 @@ document.addEventListener('DOMContentLoaded', function () {
     tabs.forEach(tab => {
         tab.addEventListener('click', function (event) {
             event.preventDefault();
-            render(tab.dataset.view || 'all');
+            const view = tab.dataset.view || 'all';
+            const hash = viewToHash[view];
+            if (hash) {
+                history.replaceState(null, '', `${window.location.pathname}#${hash}`);
+            }
+            render(view);
         });
     });
 
@@ -1064,7 +1087,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }, true);
 
-    render('all');
+    const initialHash = (window.location.hash || '').replace(/^#/, '').toLowerCase();
+    render(hashToView[initialHash] || 'all');
 });
 </script>
 HTML;

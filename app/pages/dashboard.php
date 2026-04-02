@@ -13,7 +13,7 @@
 
     .dashboard-main {
         flex: 1;
-        margin-left: 150px;
+        margin-left: 260px;
         background-color: #f8fbff;
         min-width: 0;
     }
