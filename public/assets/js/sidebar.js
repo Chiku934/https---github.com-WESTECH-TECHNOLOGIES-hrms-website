@@ -83,10 +83,6 @@ function initSidebarFlyouts() {
         const trigger = expandable.querySelector('.sidebar-subitem--trigger, .sidebar-link');
         if (!sourcePanel || !trigger) return;
 
-        if (expandable.classList.contains('active')) {
-            openFlyout(expandable);
-        }
-
         expandable.addEventListener('mouseenter', () => {
             openFlyout(expandable);
         });

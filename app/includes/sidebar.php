@@ -201,7 +201,13 @@ $myTeamActive = in_array($currentStem, [
         margin-left: auto;
         font-size: 10px;
         opacity: 0.55;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transform: rotate(0deg);
         transition: transform 0.2s ease, opacity 0.2s ease;
+        transform-origin: center center;
+        will-change: transform;
     }
 
     .sidebar-subitem::before {
@@ -235,7 +241,7 @@ $myTeamActive = in_array($currentStem, [
     .sidebar-expandable:focus-within > .sidebar-subitem--trigger .chevron,
     .sidebar-expandable.active > .sidebar-subitem--trigger .chevron,
     .sidebar-expandable.is-open > .sidebar-subitem--trigger .chevron {
-        transform: rotate(180deg);
+        transform: rotate(-90deg);
         opacity: 0.9;
     }
 
@@ -342,7 +348,7 @@ $myTeamActive = in_array($currentStem, [
                 <div class="sidebar-expandable <?= $isCurrent('timesheet') ? 'active' : '' ?>" data-sidebar-group="me-timesheet">
                     <a href="/HRMS/public/timesheet.php" class="sidebar-subitem sidebar-subitem--trigger <?= $isCurrent('timesheet') ? 'active' : '' ?>" data-sidebar-path="timesheet" data-sidebar-section="me">
                         Timesheet
-                        <i class="fa-solid fa-chevron-left chevron"></i>
+                        <i class="fa-solid fa-chevron-down chevron"></i>
                     </a>
                     <div class="sidebar-expandable-panel">
                         <a href="/HRMS/public/timesheet.php" class="sidebar-subitem sidebar-subitem--nested <?= $isCurrent('timesheet') ? 'active' : '' ?>" data-sidebar-path="timesheet" data-sidebar-section="me">
@@ -376,7 +382,7 @@ $myTeamActive = in_array($currentStem, [
                 <div class="sidebar-expandable <?= in_array($currentStem, ['user-performance', 'user-performance-feedback', 'user-performance-pip', 'user-performance-reviews', 'user-performance-skills', 'user-performance-competencies', 'user-performance-meetings'], true) ? 'active' : '' ?>" data-sidebar-group="me-performance">
                     <a href="/HRMS/public/user-performance.php" class="sidebar-subitem sidebar-subitem--trigger <?= in_array($currentStem, ['user-performance', 'user-performance-feedback', 'user-performance-pip', 'user-performance-reviews', 'user-performance-skills', 'user-performance-competencies', 'user-performance-meetings'], true) ? 'active' : '' ?>" data-sidebar-path="user-performance" data-sidebar-section="me">
                         Performance
-                        <i class="fa-solid fa-chevron-left chevron"></i>
+                        <i class="fa-solid fa-chevron-down chevron"></i>
                     </a>
                     <div class="sidebar-expandable-panel">
                         <a href="/HRMS/public/user-performance.php" class="sidebar-subitem sidebar-subitem--nested <?= in_array($currentStem, ['user-performance', 'user-performance-feedback', 'user-performance-pip', 'user-performance-reviews', 'user-performance-skills', 'user-performance-competencies', 'user-performance-meetings'], true) ? 'active' : '' ?>" data-sidebar-path="user-performance" data-sidebar-section="me">
@@ -426,7 +432,7 @@ $myTeamActive = in_array($currentStem, [
                 <div class="sidebar-expandable <?= $myTeamActive ? 'active' : '' ?>" data-sidebar-group="myteam-leave">
                     <a href="/HRMS/public/myteam_leave_overview.php" class="sidebar-subitem sidebar-subitem--trigger <?= $isCurrent('myteam_leave_overview') ? 'active' : '' ?>" data-sidebar-path="myteam_leave_overview" data-sidebar-section="myteam">
                         Leave
-                        <i class="fa-solid fa-chevron-left chevron"></i>
+                        <i class="fa-solid fa-chevron-down chevron"></i>
                     </a>
                     <div class="sidebar-expandable-panel">
                         <a href="/HRMS/public/myteam_leave_overview.php" class="sidebar-subitem sidebar-subitem--nested <?= $isCurrent('myteam_leave_overview') ? 'active' : '' ?>" data-sidebar-path="myteam_leave_overview" data-sidebar-section="myteam">
