@@ -1,0 +1,13 @@
+RewriteEngine On
+
+# Serve the root app entrypoint and keep project-relative routes working.
+DirectoryIndex index.php
+
+# Let existing files and folders load normally.
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Route clean project URLs to the PHP pages living in /public.
+RewriteRule ^$ index.php [L]
+RewriteRule ^(.*)$ public/$1 [L]
